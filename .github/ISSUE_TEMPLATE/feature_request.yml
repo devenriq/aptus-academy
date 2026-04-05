@@ -1,0 +1,48 @@
+name: Feature Request
+description: Proponer una nueva funcionalidad o mejora
+labels: ["enhancement", "status:needs-review"]
+body:
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Verificaciones previas
+      options:
+        - label: Busqué issues existentes y esta feature no fue propuesta antes
+          required: true
+        - label: Entiendo que el issue necesita status:approved antes de abrir un PR
+          required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problema que resuelve
+      description: ¿Qué problema o necesidad motiva esta feature?
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Solución propuesta
+      description: ¿Cómo debería funcionar desde la perspectiva del usuario?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área afectada
+      options:
+        - apps/web
+        - apps/mobile
+        - apps/api
+        - packages/shared
+        - CI/Workflows
+        - Otra
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternativas consideradas
