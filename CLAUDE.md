@@ -1,156 +1,160 @@
 # Aptus — Claude Context
 
-App de estudio para estudiantes preuniversitarios en Perú. Monorepo con web (Next.js PWA), mobile (Expo) y API (NestJS).
+Study app for pre-university students in Peru. Monorepo with web (Next.js PWA), mobile (Expo) and API (NestJS).
 
-## Estructura del Monorepo
+## Language Rule
+
+**ALL code, comments, variable names, file content, commit messages, PR descriptions, and documentation must be written in English. No exceptions.**
+
+## Monorepo Structure
 
 ```
 aptus/
 ├── apps/
 │   ├── web/        ← Next.js 14+ (PWA)
-│   ├── mobile/     ← React Native + Expo (Android primero)
+│   ├── mobile/     ← React Native + Expo (Android first)
 │   └── api/        ← NestJS (Clean/Hexagonal Architecture)
 ├── packages/
-│   ├── shared/     ← tipos TypeScript, schemas Zod, lógica de negocio pura
-│   └── ui-tokens/  ← design tokens compartidos (colores, tipografía)
+│   ├── shared/     ← TypeScript types, Zod schemas, pure business logic
+│   └── ui-tokens/  ← shared design tokens (colors, typography)
 └── turbo.json
 ```
 
 ## Stack
 
-| App               | Tecnología clave                                          |
+| App               | Key Technologies                                          |
 | ----------------- | --------------------------------------------------------- |
 | `apps/web`        | Next.js 14, TypeScript, Tailwind, shadcn/ui, Zustand      |
 | `apps/mobile`     | Expo SDK, React Native, Expo Router, NativeWind, Zustand  |
 | `apps/api`        | NestJS, TypeScript, TypeORM, Supabase (PostgreSQL + Auth) |
 | `packages/shared` | TypeScript, Zod                                           |
 
-## Convenciones Globales
+## Global Conventions
 
-- **TypeScript estricto** en todos los packages (`strict: true`)
-- **Zod** para validación — los schemas viven en `packages/shared` y se importan desde web, mobile y api
+- **Strict TypeScript** across all packages (`strict: true`)
+- **Zod** for validation — schemas live in `packages/shared`, imported from web, mobile and api
 - **Conventional Commits** — `feat:`, `fix:`, `test:`, `refactor:`, `docs:`
-- **TDD obligatorio** — ningún código sin test previo. PRs sin tests son rechazados
-- **Nunca** importar desde `apps/` dentro de `packages/`
-- **Nunca** importar entre apps directamente — toda lógica compartida va a `packages/shared`
+- **TDD mandatory** — no production code without a prior failing test. PRs without tests are rejected
+- **Never** import from `apps/` inside `packages/`
+- **Never** import directly between apps — all shared logic goes to `packages/shared`
 
-## Git y CI/CD
+## Git & CI/CD
 
 ### Branching Strategy — GitHub Flow
 
 ```
-feature/{nombre} ──→ PR ──→ main ──→ staging (auto-deploy)
-                                └──→ prod (deploy en release tag v*.*.*)
+feature/{name} ──→ PR ──→ main ──→ staging (auto-deploy)
+                               └──→ prod (deploy on release tag v*.*.*)
 ```
 
-- Toda tarea nueva arranca desde `main` en una rama `feature/`
-- Ningún código llega a `main` sin PR + review
-- Merge a `main` dispara deploy automático a **staging**
-- Deploy a **prod** solo con tag de release (`git tag v1.0.0`)
+- Every new task starts from `main` in a `feature/` branch
+- No code reaches `main` without PR + review
+- Merge to `main` triggers automatic deploy to **staging**
+- Deploy to **prod** only on release tag (`git tag v1.0.0`)
 
-### Ambientes
+### Environments
 
-| Ambiente | Rama/Evento | Propósito |
-|---|---|---|
-| **local** | rama local del developer | Desarrollo activo, datos de prueba |
-| **staging** | merge a `main` | QA, demos, validación pre-prod |
-| **prod** | release tag `v*.*.*` | Usuarios reales |
+| Environment | Branch/Event       | Purpose                          |
+|-------------|--------------------|---------------------------------|
+| **local**   | developer's branch | Active development, test data    |
+| **staging** | merge to `main`    | QA, demos, pre-prod validation   |
+| **prod**    | release tag `v*.*.*` | Real users                     |
 
-Variables de entorno por ambiente:
-- `local` → `.env.local` (nunca commiteado al repo)
-- `staging` → panel de Vercel + Railway (entorno staging)
-- `prod` → panel de Vercel + Railway (entorno prod)
+Environment variables per environment:
+- `local` → `.env.local` (never committed to repo)
+- `staging` → Vercel + Railway panel (staging environment)
+- `prod` → Vercel + Railway panel (prod environment)
 
 ### GitHub Actions (`.github/workflows/`)
 
-Los workflows son archivos YAML en el repo. GitHub los ejecuta automáticamente.
+Workflows are YAML files in the repo. GitHub executes them automatically.
 
 ```
 .github/workflows/
-├── ci.yml       ← corre en cada PR: lint + tests + build
-└── deploy.yml   ← corre en merge a main: deploy a staging
+├── ci.yml       ← runs on every PR: lint + tests + build
+└── deploy.yml   ← runs on merge to main: deploy to staging
 ```
 
-**`ci.yml`** — se ejecuta en cada PR:
-1. Instala dependencias
-2. Corre lint en todos los packages
-3. Corre tests unitarios + integración (Jest)
-4. Corre tests E2E (Playwright) contra un servidor de preview
+**`ci.yml`** — runs on every PR:
+1. Install dependencies
+2. Run lint across all packages
+3. Run unit + integration tests (Jest)
+4. Run E2E tests (Playwright) against a preview server
 
-**`deploy.yml`** — se ejecuta en merge a `main`:
-1. Vercel recibe el deploy de `apps/web` automáticamente (integración nativa)
-2. Railway/Render recibe el deploy de `apps/api` via webhook o CLI
+**`deploy.yml`** — runs on merge to `main`:
+1. Vercel receives `apps/web` deploy automatically (native integration)
+2. Railway/Render receives `apps/api` deploy via webhook or CLI
 
 ---
 
-## Autenticación
+## Authentication
 
-Supabase Auth emite JWTs. El guard de NestJS los valida con la clave pública de Supabase.
-No modificar este flujo sin revisar `apps/api/src/auth/`.
+Supabase Auth issues JWTs. The NestJS guard validates them using Supabase's public key.
+Do not modify this flow without reviewing `apps/api/src/auth/`.
 
-## Modelo de Negocio
+## Business Model
 
-- Trial de 7 días al registrarse
-- Suscripción mensual vía Culqi
-- El campo `usuario.suscripcion` controla el acceso: `trial | activa | inactiva`
-- El guard `SubscriptionGuard` en la API protege los endpoints de contenido
+- 7-day free trial on sign up
+- Monthly subscription via Culqi
+- `user.subscription` field controls access: `trial | active | inactive`
+- `SubscriptionGuard` in the API protects content endpoints
 
-## Estrategia de Testing
+## Testing Strategy
 
-### Pirámide de Tests
+### Testing Pyramid
 
-| Capa | Herramienta | Dónde | Qué testea |
+| Layer | Tool | Where | What it tests |
 |---|---|---|---|
-| Unit — dominio/casos de uso | Jest | `apps/api`, `packages/shared` | Lógica pura, sin framework |
-| Unit + Component — web | Jest + React Testing Library | `apps/web` | Componentes React en aislamiento |
-| Integration — endpoints | Jest + Supertest | `apps/api` | Endpoints HTTP + base de datos real |
-| **E2E — web** | **Playwright** | `apps/web` | Flujos completos en browser real |
-| Unit + Component — mobile | Jest + React Native Testing Library | `apps/mobile` | Componentes RN en aislamiento |
-| E2E — mobile | Detox | `apps/mobile` | Flujos completos en dispositivo/emulador |
+| Unit — domain/use cases | Jest | `apps/api`, `packages/shared` | Pure logic, no framework |
+| Unit + Component — web | Jest + React Testing Library | `apps/web` | React components in isolation |
+| Integration — endpoints | Jest + Supertest | `apps/api` | HTTP endpoints + real database |
+| **E2E — web** | **Playwright** | `apps/web` | Full flows in real browser |
+| Unit + Component — mobile | Jest + React Native Testing Library | `apps/mobile` | RN components in isolation |
+| E2E — mobile | Detox | `apps/mobile` | Full flows on device/emulator |
 
-### Rol de Playwright en el proyecto
+### Playwright's Role
 
-Playwright cubre la capa E2E de `apps/web`. Complementa a Jest + RTL (que testean componentes en aislamiento). No reemplaza los tests unitarios.
+Playwright covers the E2E layer of `apps/web`. It complements Jest + RTL (which test components in isolation). It does not replace unit tests.
 
-**Flujos que DEBEN tener test Playwright:**
-- Registro y login completo
-- Navegación y filtrado del catálogo
-- Responder una pregunta en Modo Libre
-- Completar un Examen Simulado y ver puntaje
-- Flujo de suscripción / activación de trial
+**Flows that MUST have a Playwright test:**
+- Full register and login flow
+- Catalog navigation and filtering
+- Answering a question in Free Mode
+- Completing a Mock Exam and viewing the score
+- Subscription / trial activation flow
 
-**Cuándo usar Playwright vs Jest + RTL:**
+**When to use Playwright vs Jest + RTL:**
 
-| Situación | Herramienta |
+| Situation | Tool |
 |---|---|
-| Testear que un componente renderiza correctamente | Jest + RTL |
-| Testear que un hook retorna el valor correcto | Jest |
-| Testear que el usuario puede registrarse y acceder al catálogo | Playwright |
-| Testear un flujo que cruza múltiples páginas | Playwright |
+| Testing a component renders correctly | Jest + RTL |
+| Testing a hook returns the correct value | Jest |
+| Testing a user can register and access the catalog | Playwright |
+| Testing a flow that spans multiple pages | Playwright |
 
-### Reglas TDD
+### TDD Rules
 
-- Ningún código de producción sin test previo
-- Los tests de casos de uso (`apps/api`) son **siempre unitarios puros** — sin base de datos, sin HTTP
-- Los tests Playwright se escriben para flujos críticos, no para cada pantalla
-- PRs sin tests correspondientes son rechazados en CI
+- No production code without a prior failing test
+- Use-case tests (`apps/api`) are **always pure unit tests** — no database, no HTTP
+- Playwright tests are written for critical flows, not every screen
+- PRs without corresponding tests are rejected in CI
 
 ---
 
-## Referencia
+## Reference
 
-- Plan completo: [PLAN.md](PLAN.md)
+- Full plan: [PLAN.md](PLAN.md)
 
 ## Skills (Auto-load based on context)
 
-Cuando detectes cualquiera de estos contextos, leé el skill correspondiente ANTES de escribir código.
+When you detect any of these contexts, read the corresponding skill BEFORE writing any code.
 
-| Contexto                                                                | Leer este archivo                                  |
-| ----------------------------------------------------------------------- | -------------------------------------------------- |
-| Trabajando en `apps/api/` — NestJS, módulos, casos de uso, repositorios | `.claude/skills/aptus-nestjs/SKILL.md`    |
-| Trabajando en `apps/web/` — Next.js, componentes, rutas, PWA            | `.claude/skills/aptus-nextjs/SKILL.md`    |
-| Trabajando en `apps/mobile/` — Expo, React Native, NativeWind           | `.claude/skills/aptus-expo/SKILL.md`      |
-| Trabajando en `packages/shared/` — tipos, schemas Zod                   | `.claude/skills/aptus-shared/SKILL.md`    |
-| Escribiendo tests en cualquier app                                      | `.claude/skills/aptus-testing/SKILL.md`   |
-| Configuración de Turborepo, turbo.json, pipelines                       | `.claude/skills/aptus-turborepo/SKILL.md` |
-| Supabase — auth, queries, RLS, storage                                  | `.claude/skills/aptus-supabase/SKILL.md`  |
+| Context                                                              | Read this file                                     |
+| -------------------------------------------------------------------- | -------------------------------------------------- |
+| Working in `apps/api/` — NestJS, modules, use cases, repositories   | `.claude/skills/aptus-nestjs/SKILL.md`    |
+| Working in `apps/web/` — Next.js, components, routes, PWA           | `.claude/skills/aptus-nextjs/SKILL.md`    |
+| Working in `apps/mobile/` — Expo, React Native, NativeWind          | `.claude/skills/aptus-expo/SKILL.md`      |
+| Working in `packages/shared/` — types, Zod schemas                  | `.claude/skills/aptus-shared/SKILL.md`    |
+| Writing tests in any app                                             | `.claude/skills/aptus-testing/SKILL.md`   |
+| Turborepo config, turbo.json, pipelines                              | `.claude/skills/aptus-turborepo/SKILL.md` |
+| Supabase — auth, queries, RLS, storage                               | `.claude/skills/aptus-supabase/SKILL.md`  |

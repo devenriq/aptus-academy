@@ -1,84 +1,62 @@
 ---
 name: aptus-shared
 description: >
-  Convenciones para packages/shared — tipos TypeScript y schemas Zod compartidos entre web, mobile y API.
-  Trigger: Cuando se trabaja en packages/shared/ o se necesita agregar tipos/schemas reutilizables.
+  Conventions for packages/shared — TypeScript types and Zod schemas shared between web, mobile and API.
+  Trigger: When working in packages/shared/ or when adding reusable types/schemas.
 license: Apache-2.0
 metadata:
   author: gentleman-programming
   version: "1.0"
 ---
 
-## Cuando Usar
+## When to Use
 
-- Agregar un tipo de dominio nuevo
-- Agregar un schema Zod de validación
-- Mover lógica pura que se repite en más de una app
+- Adding a new domain type
+- Adding a Zod validation schema
+- Moving pure logic repeated in more than one app
 
-## Reglas Críticas
+## Critical Rules
 
-- **Solo TypeScript puro** — sin imports de React, NestJS, Next.js, ni cualquier framework.
-- **Zod para todos los schemas** — son la fuente de verdad de validación para web, mobile y api.
-- **Inferir tipos desde Zod**, no duplicarlos:
+- **Pure TypeScript only** — no imports from React, NestJS, Next.js, or any framework.
+- **Zod for all schemas** — single source of truth for validation across web, mobile and api.
+- **Infer types from Zod**, do not duplicate them:
   ```typescript
   export const QuestionSchema = z.object({ ... });
   export type Question = z.infer<typeof QuestionSchema>;
   ```
-- **Nunca importar desde `apps/`** dentro de este package.
-- Todo lo que se exporte debe estar en `src/index.ts`.
+- **Never import from `apps/`** inside this package.
+- Everything exported must be in `src/index.ts`.
 
-## Estructura
-
-```
-packages/shared/src/
-├── domain/
-│   ├── question.ts      ← schema + tipo Question
-│   ├── user.ts          ← schema + tipo User
-│   ├── exam.ts          ← schema + tipo ExamenSimulado
-│   └── interaction.ts   ← schema + tipo Interaccion
-├── validation/
-│   └── filters.ts       ← schemas de filtros (universidad, materia, año, dificultad)
-└── index.ts             ← re-exporta todo
-```
-
-## Patrón de Entidad
+## Entity Pattern
 
 ```typescript
 // domain/question.ts
 import { z } from 'zod';
 
-export const DifficultySchema = z.enum(['facil', 'medio', 'dificil']);
-
-export const OptionSchema = z.object({
-  id: z.string().uuid(),
-  texto: z.string().min(1),
-});
+export const DifficultySchema = z.enum(['easy', 'medium', 'hard']);
 
 export const QuestionSchema = z.object({
   id: z.string().uuid(),
-  enunciado: z.string().min(1),
-  anio: z.number().int().min(2000),
-  dificultad: DifficultySchema,
-  materiaId: z.string().uuid(),
-  opciones: z.array(OptionSchema).length(5),
-  opcionCorrectaId: z.string().uuid(),
+  statement: z.string().min(1),
+  year: z.number().int().min(2000),
+  difficulty: DifficultySchema,
+  subjectId: z.string().uuid(),
+  options: z.array(OptionSchema).length(5),
+  correctOptionId: z.string().uuid(),
 });
 
 export type Question = z.infer<typeof QuestionSchema>;
-export type Difficulty = z.infer<typeof DifficultySchema>;
 ```
 
-## Cómo Consumir en Otras Apps
+## How to Consume in Other Apps
 
 ```typescript
-// En apps/web, apps/mobile o apps/api:
 import { type Question, QuestionSchema } from '@aptus/shared';
 
-// Validar datos que llegan de la API:
 const question = QuestionSchema.parse(rawData);
 ```
 
-## Comandos
+## Commands
 
 ```bash
 cd packages/shared && pnpm test

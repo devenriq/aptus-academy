@@ -1,93 +1,86 @@
 ---
 name: aptus-nextjs
 description: >
-  Next.js 14 con App Router, PWA y convenciones para el proyecto Aptus.
-  Trigger: Cuando se trabaja en apps/web/ — páginas, componentes, rutas, layouts, PWA.
+  Next.js 14 with App Router, PWA and conventions for the Aptus project.
+  Trigger: When working in apps/web/ — pages, components, routes, layouts, PWA.
 license: Apache-2.0
 metadata:
   author: gentleman-programming
   version: "1.0"
 ---
 
-## Cuando Usar
+## When to Use
 
-- Crear páginas o layouts en `apps/web/`
-- Agregar componentes, hooks o stores del cliente
-- Escribir tests de componentes web (Jest + RTL) o E2E (Playwright)
+- Creating pages or layouts in `apps/web/`
+- Adding components, hooks or client stores
+- Writing web component tests (Jest + RTL) or E2E tests (Playwright)
 
-## Estructura de Carpetas
+## Folder Structure
 
 ```
 apps/web/src/
 ├── app/
-│   ├── (auth)/              ← rutas públicas: login, registro
-│   ├── (app)/               ← rutas protegidas con layout de app
-│   │   ├── catalogo/
-│   │   ├── examen/
-│   │   └── perfil/
+│   ├── (auth)/              ← public routes: login, register
+│   ├── (app)/               ← protected routes with app layout
+│   │   ├── catalog/
+│   │   ├── exam/
+│   │   └── profile/
 │   └── layout.tsx
 ├── components/
-│   ├── ui/                  ← shadcn/ui — NO editar manualmente
-│   └── {feature}/           ← componentes presentacionales por feature
+│   ├── ui/                  ← shadcn/ui — DO NOT edit manually
+│   └── {feature}/           ← presentational components per feature
 ├── hooks/
-├── stores/                  ← Zustand, un store por feature
+├── stores/                  ← Zustand, one store per feature
 └── lib/
-    └── api/                 ← funciones fetch hacia apps/api
+    └── api/                 ← fetch functions toward apps/api
 ```
 
-## Reglas Críticas
+## Critical Rules
 
-- **Server Components por defecto.** Solo `'use client'` cuando hay eventos, estado o hooks del browser.
-- **Nunca acceder a DB desde web.** Todo pasa por `apps/api`.
-- **shadcn/ui** para componentes base: `npx shadcn@latest add {componente}`. Nunca editar `components/ui/` a mano.
-- **Zustand**: un store por feature, no un store global gigante.
-- **Importar tipos y schemas** desde `@aptus/shared`. Nunca redefinirlos en web.
+- **Server Components by default.** Only add `'use client'` when there are events, state or browser hooks.
+- **Never access the DB from web.** Everything goes through `apps/api`.
+- **shadcn/ui** for base components: `npx shadcn@latest add {component}`. Never edit `components/ui/` manually.
+- **Zustand**: one store per feature, not one giant global store.
+- **Import types and schemas** from `@aptus/shared`. Never redefine them in web.
 
-## Patrón Componente + Test
+## Component + Test Pattern
 
 ```typescript
-// components/catalogo/question-card.tsx
+// components/catalog/question-card.tsx
 import type { Question } from '@aptus/shared';
 
 interface Props { question: Question }
 
 export function QuestionCard({ question }: Props) {
-  return <div>{question.enunciado}</div>;
+  return <div>{question.statement}</div>;
 }
 
-// components/catalogo/question-card.test.tsx
+// components/catalog/question-card.test.tsx
 import { render, screen } from '@testing-library/react';
 import { QuestionCard } from './question-card';
 
-it('renders question text', () => {
+it('renders question statement', () => {
   render(<QuestionCard question={mockQuestion} />);
-  expect(screen.getByText(mockQuestion.enunciado)).toBeInTheDocument();
+  expect(screen.getByText(mockQuestion.statement)).toBeInTheDocument();
 });
 ```
 
-## Tests E2E con Playwright
+## E2E Tests with Playwright
 
 ```typescript
-// e2e/catalogo.spec.ts
-import { test, expect } from '@playwright/test';
-
+// e2e/catalog.spec.ts
 test('student can filter and answer a question', async ({ page }) => {
-  await page.goto('/catalogo');
-  await page.selectOption('[data-testid="universidad-filter"]', 'UNSA');
+  await page.goto('/catalog');
+  await page.selectOption('[data-testid="university-filter"]', 'UNSA');
   await expect(page.locator('[data-testid="question-card"]')).toBeVisible();
 });
 ```
 
-## PWA
-
-Configurado via `next-pwa`. No modificar el service worker manualmente — se genera en build.
-Manifest en `public/manifest.json`.
-
-## Comandos
+## Commands
 
 ```bash
 cd apps/web && pnpm dev
 cd apps/web && pnpm test
-cd apps/web && pnpm test:e2e     # Playwright
-npx shadcn@latest add {nombre}
+cd apps/web && pnpm test:e2e
+npx shadcn@latest add {name}
 ```

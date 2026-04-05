@@ -1,59 +1,59 @@
 ---
 name: aptus-nestjs
 description: >
-  NestJS con Clean/Hexagonal Architecture para el proyecto Aptus.
-  Trigger: Cuando se trabaja en apps/api/ — módulos, casos de uso, repositorios, guards, entidades.
+  NestJS with Clean/Hexagonal Architecture for the Aptus project.
+  Trigger: When working in apps/api/ — modules, use cases, repositories, guards, entities.
 license: Apache-2.0
 metadata:
   author: gentleman-programming
   version: "1.0"
 ---
 
-## Cuando Usar
+## When to Use
 
-- Crear un nuevo módulo NestJS en `apps/api/`
-- Agregar un caso de uso, repositorio, o entidad de dominio
-- Crear guards de autenticación o autorización
-- Escribir tests de la capa API
+- Creating a new NestJS module in `apps/api/`
+- Adding a use case, repository, or domain entity
+- Creating authentication or authorization guards
+- Writing API layer tests
 
-## Estructura de un Módulo
+## Module Structure
 
-Cada módulo sigue Clean Architecture. El dominio no conoce al framework.
+Each module follows Clean Architecture. The domain has no knowledge of the framework.
 
 ```
-src/modules/{nombre}/
+src/modules/{name}/
 ├── domain/
-│   ├── {nombre}.entity.ts          ← Entidad pura, sin decoradores NestJS/TypeORM
-│   └── {nombre}.repository.ts      ← Interface del repositorio (puerto)
+│   ├── {name}.entity.ts              ← Pure entity, no NestJS/TypeORM decorators
+│   └── {name}.repository.ts          ← Repository interface (port)
 ├── application/
 │   └── use-cases/
-│       ├── {accion}-{nombre}.use-case.ts
-│       └── {accion}-{nombre}.use-case.spec.ts   ← Test unitario
+│       ├── {action}-{name}.use-case.ts
+│       └── {action}-{name}.use-case.spec.ts   ← Unit test
 ├── infrastructure/
-│   ├── {nombre}.typeorm-entity.ts  ← Entidad TypeORM con decoradores
-│   ├── {nombre}.typeorm-repository.ts  ← Implementación del repositorio
-│   └── {nombre}.controller.ts      ← Controller NestJS
-└── {nombre}.module.ts
+│   ├── {name}.typeorm-entity.ts      ← TypeORM entity with decorators
+│   ├── {name}.typeorm-repository.ts  ← Repository implementation
+│   └── {name}.controller.ts          ← NestJS controller
+└── {name}.module.ts
 ```
 
-## Reglas Críticas
+## Critical Rules
 
-- **La entidad de dominio NO tiene decoradores** de TypeORM ni NestJS. Es una clase TypeScript pura.
-- **Los casos de uso reciben interfaces**, no implementaciones concretas. Inyección por token.
-- **Los tests de casos de uso son unitarios puros** — sin base de datos, sin HTTP, sin NestJS.
-- **Los tests de controller son de integración** — usan `@nestjs/testing` + Supertest.
-- **Cada caso de uso hace UNA sola cosa.** Si hace dos, separarlos.
+- **Domain entity has NO decorators** from TypeORM or NestJS. It is a pure TypeScript class.
+- **Use cases receive interfaces**, not concrete implementations. Injected by token.
+- **Use case tests are pure unit tests** — no database, no HTTP, no NestJS.
+- **Controller tests are integration tests** — use `@nestjs/testing` + Supertest.
+- **Each use case does ONE thing.** If it does two, split them.
 
-## Patrón de Caso de Uso
+## Use Case Pattern
 
 ```typescript
 // application/use-cases/get-questions.use-case.ts
 export class GetQuestionsUseCase {
   constructor(
-    private readonly questionRepository: QuestionRepository, // interface
+    private readonly questionRepository: QuestionRepository,
   ) {}
 
-  async execute(filters: GetQuestionsFilters): Promise<Question[]> {
+  async execute(filters: QuestionFilters): Promise<Question[]> {
     return this.questionRepository.findByFilters(filters);
   }
 }
@@ -71,39 +71,28 @@ describe('GetQuestionsUseCase', () => {
 });
 ```
 
-## Guard de Autenticación (Supabase JWT)
+## Authentication Guard (Supabase JWT)
 
 ```typescript
 // auth/supabase-auth.guard.ts
-// Valida el JWT de Supabase con la clave pública SUPABASE_JWT_SECRET
-// Inyecta el usuario en request.user
-// Nunca reimplementar — siempre importar de src/auth/
+// Validates Supabase JWT using SUPABASE_JWT_SECRET
+// Injects authenticated user into request.user
+// Never re-implement — always import from src/auth/
 ```
 
-## Guard de Suscripción
+## Subscription Guard
 
 ```typescript
 // auth/subscription.guard.ts
-// Verifica que usuario.suscripcion === 'activa' | 'trial' (y trial no expirado)
-// Aplica en todos los endpoints de contenido (preguntas, exámenes)
+// Verifies user.subscription === 'active' | 'trial' (and trial not expired)
+// Applied to all content endpoints (questions, exams)
 ```
 
-## Comandos
+## Commands
 
 ```bash
-# Generar módulo
-npx nest g module modules/{nombre}
-
-# Correr tests de la API
+npx nest g module modules/{name}
 cd apps/api && pnpm test
-
-# Correr tests en watch
 cd apps/api && pnpm test:watch
-
-# Correr e2e
 cd apps/api && pnpm test:e2e
 ```
-
-## Recursos
-
-- Plan del proyecto: [PLAN.md](../../../WebDev/Work/Freelance/aptus/PLAN.md)

@@ -1,50 +1,50 @@
-## Issue vinculado
+## Linked Issue
 
 Closes #
 
-> El issue DEBE tener el label `status:approved` antes de mergear este PR.
+> The linked issue MUST have the `status:approved` label before this PR can be merged.
 
 ---
 
-## Tipo de cambio
+## Type of Change
 
 - [ ] Bug fix (`type:bug`)
-- [ ] Nueva feature (`type:feature`)
-- [ ] Solo documentación (`type:docs`)
+- [ ] New feature (`type:feature`)
+- [ ] Documentation only (`type:docs`)
 - [ ] Refactor (`type:refactor`)
-- [ ] Mantenimiento / tooling (`type:chore`)
+- [ ] Maintenance / tooling (`type:chore`)
 - [ ] Breaking change (`type:breaking-change`)
 
 ---
 
-## Resumen
+## Summary
 
 -
 -
 
 ---
 
-## Archivos modificados
+## Modified Files
 
-| Archivo | Cambio |
-|---------|--------|
+| File | Change |
+|------|--------|
 | `` |  |
 
 ---
 
-## Plan de testing
+## Testing Plan
 
-- [ ] Tests unitarios escritos y pasando
-- [ ] Tests de integración (si aplica)
-- [ ] Tests E2E con Playwright (si es flujo crítico web)
-- [ ] Probado manualmente en local
+- [ ] Unit tests written and passing
+- [ ] Integration tests (if applicable)
+- [ ] Playwright E2E tests (if critical web flow)
+- [ ] Manually tested locally
 
 ---
 
 ## Checklist
 
-- [ ] Issue vinculado con `Closes #N`
-- [ ] Label `type:*` agregado al PR
-- [ ] Commits en formato conventional (`feat(scope): descripción`)
-- [ ] Tests incluidos
-- [ ] Sin `console.log` ni código de debug
+- [ ] Issue linked with `Closes #N`
+- [ ] `type:*` label added to PR
+- [ ] Commits follow conventional format (`feat(scope): description`)
+- [ ] Tests included
+- [ ] No `console.log` or debug code left

@@ -1,80 +1,76 @@
 ---
 name: aptus-expo
 description: >
-  React Native con Expo Router y NativeWind para el proyecto Aptus.
-  Trigger: Cuando se trabaja en apps/mobile/ — pantallas, navegación, componentes nativos.
+  React Native with Expo Router and NativeWind for the Aptus project.
+  Trigger: When working in apps/mobile/ — screens, navigation, native components.
 license: Apache-2.0
 metadata:
   author: gentleman-programming
   version: "1.0"
 ---
 
-## Cuando Usar
+## When to Use
 
-- Crear pantallas o navegación en `apps/mobile/`
-- Agregar componentes React Native, hooks o stores mobile
-- Configurar builds con EAS
-- Escribir tests de componentes mobile (Jest + RNTL) o E2E (Detox)
+- Creating screens or navigation in `apps/mobile/`
+- Adding React Native components, hooks or mobile stores
+- Configuring builds with EAS
+- Writing mobile component tests (Jest + RNTL) or E2E tests (Detox)
 
-## Estructura de Carpetas
+## Folder Structure
 
 ```
 apps/mobile/
-├── app/                     ← Expo Router (file-based routing)
+├── app/
 │   ├── (auth)/
 │   │   ├── login.tsx
 │   │   └── register.tsx
 │   ├── (app)/
-│   │   ├── catalogo/
-│   │   ├── examen/
-│   │   └── perfil/
+│   │   ├── catalog/
+│   │   ├── exam/
+│   │   └── profile/
 │   └── _layout.tsx
 ├── components/
 │   └── {feature}/
 ├── hooks/
-├── stores/                  ← Zustand (mismo patrón que web)
+├── stores/
 └── lib/
-    └── api/                 ← fetch hacia apps/api
+    └── api/
 ```
 
-## Reglas Críticas
+## Critical Rules
 
-- **Expo Router** para toda la navegación — file-based, igual que Next.js App Router.
-- **NativeWind** para estilos — misma sintaxis de Tailwind, pero en React Native.
-- **Nunca** usar `StyleSheet.create` — todo via NativeWind clases.
-- **Importar tipos y schemas** desde `@aptus/shared`. Nunca redefinirlos.
-- **Mismo Zustand store** que web cuando sea posible — la lógica vive en `packages/shared`.
-- El público objetivo es **Android de gama baja** — evitar animaciones pesadas, lazy load agresivo.
+- **Expo Router** for all navigation — file-based, same as Next.js App Router.
+- **NativeWind** for styles — same Tailwind syntax, but in React Native.
+- **Never** use `StyleSheet.create` — everything via NativeWind classes.
+- **Import types and schemas** from `@aptus/shared`. Never redefine them.
+- Target audience is **low-end Android** — avoid heavy animations, use aggressive lazy loading.
 
-## Patrón Pantalla + Test
+## Screen + Test Pattern
 
 ```typescript
-// app/(app)/catalogo/index.tsx
+// app/(app)/catalog/index.tsx
 import { View, Text } from 'react-native';
-import type { Question } from '@aptus/shared';
 
-export default function CatalogoScreen() {
+export default function CatalogScreen() {
   return (
     <View className="flex-1 p-4">
-      <Text className="text-xl font-bold">Catálogo</Text>
+      <Text className="text-xl font-bold">Catalog</Text>
     </View>
   );
 }
 
-// components/catalogo/question-card.test.tsx
+// components/catalog/question-card.test.tsx
 import { render, screen } from '@testing-library/react-native';
-import { QuestionCard } from './question-card';
 
-it('renders question text', () => {
+it('renders question statement', () => {
   render(<QuestionCard question={mockQuestion} />);
-  expect(screen.getByText(mockQuestion.enunciado)).toBeTruthy();
+  expect(screen.getByText(mockQuestion.statement)).toBeTruthy();
 });
 ```
 
-## Builds con EAS
+## EAS Builds
 
 ```json
-// eas.json
 {
   "build": {
     "development": { "developmentClient": true, "distribution": "internal" },
@@ -84,16 +80,12 @@ it('renders question text', () => {
 }
 ```
 
-- `development` → Expo Go / development build local
-- `preview` → APK interno para staging (OTA updates)
-- `production` → Play Store / App Store
-
-## Comandos
+## Commands
 
 ```bash
-cd apps/mobile && pnpm start          # Expo dev server
-cd apps/mobile && pnpm test           # Jest + RNTL
-eas build --profile preview           # Build de staging
-eas build --profile production        # Build de prod
-eas update --branch staging           # OTA update a staging
+cd apps/mobile && pnpm start
+cd apps/mobile && pnpm test
+eas build --profile preview
+eas build --profile production
+eas update --branch staging
 ```

@@ -1,95 +1,76 @@
 ---
 name: aptus-turborepo
 description: >
-  Configuración y convenciones del monorepo Aptus con Turborepo.
-  Trigger: Cuando se configura turbo.json, se agregan packages, o se trabaja con el pipeline del monorepo.
+  Configuration and conventions for the Aptus monorepo with Turborepo.
+  Trigger: When configuring turbo.json, adding packages, or working with the monorepo pipeline.
 license: Apache-2.0
 metadata:
   author: gentleman-programming
   version: "1.0"
 ---
 
-## Cuando Usar
+## When to Use
 
-- Modificar `turbo.json` o pipelines de build/test
-- Agregar un nuevo package a `packages/`
-- Configurar dependencias entre apps/packages
-- Debuggear por qué un comando no corre en el orden esperado
+- Modifying `turbo.json` or build/test pipelines
+- Adding a new package to `packages/`
+- Configuring dependencies between apps/packages
+- Debugging pipeline execution order
 
-## Estructura del Monorepo
+## Monorepo Structure
 
 ```
 aptus/
 ├── apps/
-│   ├── web/          ← Next.js (depende de @aptus/shared)
-│   ├── mobile/       ← Expo (depende de @aptus/shared)
-│   └── api/          ← NestJS (depende de @aptus/shared)
+│   ├── web/          ← Next.js (depends on @aptus/shared)
+│   ├── mobile/       ← Expo (depends on @aptus/shared)
+│   └── api/          ← NestJS (depends on @aptus/shared)
 ├── packages/
-│   ├── shared/       ← @aptus/shared (sin dependencias internas)
-│   └── ui-tokens/    ← @aptus/ui-tokens (sin dependencias internas)
+│   ├── shared/       ← @aptus/shared (no internal deps)
+│   └── ui-tokens/    ← @aptus/ui-tokens (no internal deps)
 ├── turbo.json
-├── package.json      ← workspace root
 └── pnpm-workspace.yaml
 ```
 
-## Reglas Críticas
+## Critical Rules
 
-- **`packages/` nunca importa desde `apps/`** — el flujo de dependencias es unidireccional.
-- **`packages/shared` se buildea primero** — las apps dependen de él.
-- Usar **pnpm workspaces** para gestión de dependencias.
-- Agregar dependencias internas como: `"@aptus/shared": "workspace:*"`
+- **`packages/` never imports from `apps/`** — unidirectional dependency flow.
+- **`packages/shared` builds first** — apps depend on it.
+- Add internal dependencies as: `"@aptus/shared": "workspace:*"`
 
-## turbo.json base
+## turbo.json Base
 
 ```json
 {
   "$schema": "https://turbo.build/schema.json",
   "pipeline": {
-    "build": {
-      "dependsOn": ["^build"],
-      "outputs": [".next/**", "dist/**"]
-    },
-    "test": {
-      "dependsOn": ["^build"],
-      "outputs": ["coverage/**"]
-    },
-    "test:e2e": {
-      "dependsOn": ["^build"]
-    },
+    "build": { "dependsOn": ["^build"], "outputs": [".next/**", "dist/**"] },
+    "test": { "dependsOn": ["^build"], "outputs": ["coverage/**"] },
+    "test:e2e": { "dependsOn": ["^build"] },
     "lint": {},
-    "dev": {
-      "cache": false,
-      "persistent": true
-    }
+    "dev": { "cache": false, "persistent": true }
   }
 }
 ```
 
-`"dependsOn": ["^build"]` significa: buildear las dependencias primero.
-
-## Agregar un Nuevo Package
+## Adding a New Package
 
 ```bash
-mkdir packages/nuevo-package
-cd packages/nuevo-package
-pnpm init
-# Nombre en package.json: "@aptus/nuevo-package"
+mkdir packages/new-package && cd packages/new-package && pnpm init
+# Set name in package.json: "@aptus/new-package"
 ```
 
-Luego en el `package.json` de la app que lo consume:
+In consuming app's `package.json`:
 ```json
-{ "dependencies": { "@aptus/nuevo-package": "workspace:*" } }
+{ "dependencies": { "@aptus/new-package": "workspace:*" } }
 ```
 
-## Comandos
+## Commands
 
 ```bash
-pnpm dev              # corre todas las apps en paralelo
-pnpm build            # build completo respetando dependencias
-pnpm test             # tests en todos los packages
-pnpm lint             # lint en todos los packages
-
-# Solo una app:
+pnpm dev
+pnpm build
+pnpm test
+pnpm lint
 pnpm --filter @aptus/web dev
 pnpm --filter @aptus/api test
 ```

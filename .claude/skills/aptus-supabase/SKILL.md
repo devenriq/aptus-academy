@@ -1,97 +1,90 @@
 ---
 name: aptus-supabase
 description: >
-  Integración de Supabase (Auth + PostgreSQL) en el proyecto Aptus.
-  Trigger: Cuando se trabaja con autenticación, queries a Supabase, RLS, o storage.
+  Supabase integration (Auth + PostgreSQL) for the Aptus project.
+  Trigger: When working with authentication, Supabase queries, RLS, or storage.
 license: Apache-2.0
 metadata:
   author: gentleman-programming
   version: "1.0"
 ---
 
-## Cuando Usar
+## When to Use
 
-- Configurar o modificar autenticación (Supabase Auth + NestJS guard)
-- Escribir queries a PostgreSQL via TypeORM
-- Configurar Row Level Security (RLS)
-- Trabajar con Supabase Storage
+- Configuring or modifying authentication (Supabase Auth + NestJS guard)
+- Writing PostgreSQL queries via TypeORM
+- Configuring Row Level Security (RLS)
+- Working with Supabase Storage
 
-## Arquitectura de Auth
+## Auth Architecture
 
 ```
 apps/web / apps/mobile
   → login via Supabase Auth SDK
-  → recibe JWT
+  → receives JWT
 
 apps/api (NestJS)
-  → SupabaseAuthGuard valida el JWT con SUPABASE_JWT_SECRET
-  → inyecta usuario en request.user
-  → SubscriptionGuard verifica suscripcion activa o trial vigente
+  → SupabaseAuthGuard validates JWT with SUPABASE_JWT_SECRET
+  → injects user into request.user
+  → SubscriptionGuard verifies active subscription or valid trial
 ```
 
-## Guard de Auth en NestJS
+## NestJS Auth Guard
 
 ```typescript
 // src/auth/supabase-auth.guard.ts
-// Valida JWT con la clave pública de Supabase
-// Variables requeridas: SUPABASE_URL, SUPABASE_JWT_SECRET
-// Inyecta: request.user = { id, email, ... }
-// Nunca reimplementar — importar de src/auth/
+// Validates JWT with Supabase public key
+// Required env vars: SUPABASE_URL, SUPABASE_JWT_SECRET
+// Injects: request.user = { id, email, ... }
+// Never re-implement — import from src/auth/
 ```
 
-Aplicar en controllers:
+Apply in controllers:
 ```typescript
-@UseGuards(SupabaseAuthGuard)          // solo autenticación
-@UseGuards(SupabaseAuthGuard, SubscriptionGuard)  // auth + suscripción activa
+@UseGuards(SupabaseAuthGuard)
+@UseGuards(SupabaseAuthGuard, SubscriptionGuard)
 ```
 
-## Variables de Entorno Requeridas
+## Required Environment Variables
 
 ```bash
 # apps/api
 SUPABASE_URL=
 SUPABASE_JWT_SECRET=
-DATABASE_URL=            # connection string de Supabase PostgreSQL
+DATABASE_URL=
 
 # apps/web / apps/mobile
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 ```
 
-## TypeORM + Supabase PostgreSQL
-
-TypeORM se conecta a la DB de Supabase via `DATABASE_URL`.
-Las entidades TypeORM son distintas de las entidades de dominio — viven en `infrastructure/`.
+## TypeORM Entity Pattern
 
 ```typescript
 // infrastructure/question.typeorm-entity.ts
 @Entity('questions')
 export class QuestionTypeOrmEntity {
   @PrimaryGeneratedColumn('uuid') id: string;
-  @Column() enunciado: string;
-  @Column() anio: number;
-  @Column({ type: 'enum', enum: ['facil', 'medio', 'dificil'] })
-  dificultad: string;
-  // ...
+  @Column() statement: string;
+  @Column() year: number;
+  @Column({ type: 'enum', enum: ['easy', 'medium', 'hard'] })
+  difficulty: string;
 }
 ```
 
 ## Row Level Security (RLS)
 
-RLS se configura en el panel de Supabase o via migraciones SQL.
-Política base para `interactions`: el usuario solo ve sus propias interacciones.
-
 ```sql
+-- Users can only see their own interactions
 CREATE POLICY "users_own_interactions"
 ON interactions FOR ALL
-USING (auth.uid() = usuario_id);
+USING (auth.uid() = user_id);
 ```
 
-## Comandos
+## Commands
 
 ```bash
-# Supabase CLI local
-supabase start           # levanta Supabase localmente (PostgreSQL + Auth + Studio)
-supabase db push         # aplica migraciones a staging/prod
-supabase gen types       # genera tipos TypeScript desde el schema de la DB
+supabase start
+supabase db push
+supabase gen types
 ```

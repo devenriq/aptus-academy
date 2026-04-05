@@ -1,102 +1,89 @@
 ---
 name: aptus-testing
 description: >
-  Estrategia TDD completa para Aptus — Jest, React Testing Library, Playwright y Detox.
-  Trigger: Cuando se escriben tests en cualquier app del monorepo.
+  Full TDD strategy for Aptus — Jest, React Testing Library, Playwright and Detox.
+  Trigger: When writing tests in any app of the monorepo.
 license: Apache-2.0
 metadata:
   author: gentleman-programming
   version: "1.0"
 ---
 
-## Cuando Usar
+## When to Use
 
-- Escribir cualquier tipo de test en el proyecto
-- Decidir qué herramienta usar para un test específico
-- Configurar un nuevo tipo de test
+- Writing any type of test in the project
+- Deciding which tool to use for a specific test
+- Configuring a new test type
 
-## La Regla de Oro
+## The Golden Rule
 
-**Ningún código de producción sin un test previo que falle.** El flujo es siempre: test rojo → código mínimo → test verde → refactor.
+**No production code without a prior failing test.** Flow: red → minimal code → green → refactor.
 
-## Qué Herramienta Usar
+## Which Tool to Use
 
-| Situación | Herramienta |
+| Situation | Tool |
 |---|---|
-| Lógica de negocio pura (caso de uso, utilidad) | Jest |
-| Componente React web en aislamiento | Jest + React Testing Library |
-| Componente React Native en aislamiento | Jest + React Native Testing Library |
-| Endpoint NestJS (con DB real de test) | Jest + Supertest |
-| Flujo completo en browser (web) | Playwright |
-| Flujo completo en dispositivo (mobile) | Detox |
+| Pure business logic (use case, utility) | Jest |
+| React web component in isolation | Jest + React Testing Library |
+| React Native component in isolation | Jest + React Native Testing Library |
+| NestJS endpoint (with real test DB) | Jest + Supertest |
+| Full flow in browser (web) | Playwright |
+| Full flow on device (mobile) | Detox |
 
-## Tests Unitarios — Casos de Uso NestJS
+## Unit Tests — NestJS Use Cases
 
 ```typescript
-// SIEMPRE unitarios puros — sin NestJS, sin DB, sin HTTP
 describe('GetQuestionsUseCase', () => {
   it('should return questions filtered by university', async () => {
     const repo = { findByFilters: jest.fn().mockResolvedValue([mockQ]) };
     const useCase = new GetQuestionsUseCase(repo);
     const result = await useCase.execute({ universityId: 'unsa' });
-    expect(repo.findByFilters).toHaveBeenCalledWith({ universityId: 'unsa' });
     expect(result).toHaveLength(1);
   });
 });
 ```
 
-## Tests de Componente — React (RTL)
+## Component Tests — React (RTL)
 
 ```typescript
-// Testear comportamiento, no implementación
 it('shows correct feedback after answering', async () => {
   render(<QuestionCard question={mockQuestion} />);
-  await userEvent.click(screen.getByText('Opción A'));
-  expect(screen.getByText('Correcto')).toBeInTheDocument();
+  await userEvent.click(screen.getByText('Option A'));
+  expect(screen.getByText('Correct!')).toBeInTheDocument();
 });
 ```
 
-## Tests E2E — Playwright (flujos críticos web)
+## E2E Tests — Playwright
 
 ```typescript
-// e2e/auth.spec.ts
 test('user can register and access catalog', async ({ page }) => {
   await page.goto('/register');
   await page.fill('[name="email"]', 'test@aptus.pe');
   await page.fill('[name="password"]', 'SecurePass123');
   await page.click('[type="submit"]');
-  await expect(page).toHaveURL('/catalogo');
+  await expect(page).toHaveURL('/catalog');
 });
 ```
 
-**Flujos que DEBEN tener test Playwright:**
-- Registro completo + acceso al catálogo
-- Filtrar preguntas y responder en Modo Libre
-- Completar un Examen Simulado y ver puntaje
-- Flujo de activación de trial / suscripción
+**Flows that MUST have a Playwright test:**
+- Full registration + catalog access
+- Filter questions and answer in Free Mode
+- Complete a Mock Exam and view score
+- Trial activation / subscription flow
 
-## Reglas
+## Rules
 
-- Tests de casos de uso = **cero dependencias externas** (mock todo)
-- Tests de integración (Supertest) = **base de datos de test real**, nunca mock de DB
-- Tests Playwright = **ambiente de staging** en CI, localhost en local
-- Nunca testear detalles de implementación — testear comportamiento observable
-- Un `describe` por clase/componente, un `it` por comportamiento
+- Use case tests = zero external dependencies (mock everything)
+- Integration tests (Supertest) = real test database, never mock the DB
+- Playwright tests = staging environment in CI, localhost locally
+- Never test implementation details — test observable behavior
 
-## Comandos
+## Commands
 
 ```bash
-# API
-cd apps/api && pnpm test              # unit + integration
-cd apps/api && pnpm test:e2e          # e2e API
-
-# Web
-cd apps/web && pnpm test              # Jest + RTL
-cd apps/web && pnpm test:e2e          # Playwright
-
-# Mobile
-cd apps/mobile && pnpm test           # Jest + RNTL
-
-# Monorepo completo
-pnpm test                             # corre todos via Turborepo
+cd apps/api && pnpm test
+cd apps/web && pnpm test
+cd apps/web && pnpm test:e2e
+cd apps/mobile && pnpm test
+pnpm test                    # full monorepo via Turborepo
 ```

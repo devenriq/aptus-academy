@@ -1,65 +1,65 @@
 name: Bug Report
-description: Reportar un comportamiento inesperado o error en la aplicación
+description: Report unexpected behavior or errors in the application
 labels: ["bug", "status:needs-review"]
 body:
   - type: checkboxes
     id: preflight
     attributes:
-      label: Verificaciones previas
+      label: Pre-flight checks
       options:
-        - label: Busqué issues existentes y este no es un duplicado
+        - label: I searched existing issues and this is not a duplicate
           required: true
-        - label: Entiendo que el issue necesita status:approved antes de abrir un PR
+        - label: I understand this issue needs status:approved before a PR can be opened
           required: true
 
   - type: textarea
     id: description
     attributes:
-      label: Descripción del bug
-      description: Descripción clara y concisa del problema
+      label: Bug description
+      description: Clear and concise description of the problem
     validations:
       required: true
 
   - type: textarea
     id: steps
     attributes:
-      label: Pasos para reproducir
+      label: Steps to reproduce
       placeholder: |
-        1. Ir a '...'
-        2. Hacer click en '...'
-        3. Ver el error
+        1. Go to '...'
+        2. Click on '...'
+        3. See error
     validations:
       required: true
 
   - type: textarea
     id: expected
     attributes:
-      label: Comportamiento esperado
+      label: Expected behavior
     validations:
       required: true
 
   - type: textarea
     id: actual
     attributes:
-      label: Comportamiento actual
+      label: Actual behavior
     validations:
       required: true
 
   - type: dropdown
     id: app
     attributes:
-      label: App afectada
+      label: Affected app
       options:
         - apps/web
         - apps/mobile
         - apps/api
         - packages/shared
-        - Otra
+        - Other
     validations:
       required: true
 
   - type: textarea
     id: logs
     attributes:
-      label: Logs relevantes
+      label: Relevant logs
       render: shell
